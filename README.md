@@ -15,7 +15,9 @@ SipaaGL is a graphics library with many features (and many bugs)!
 
 ## Some resources
 [The SipaaGL Wiki (for who wants tutorials / understand the API)](https://github.com/SipaaKernel-Project/SipaaGL/wiki)
+
 [The SipaaKernel Discord server (if the link is not working, DM RaphMar2022#6488 on Discord)](https://discord.gg/AGNsCfQp)
+
 [The Cosmos Discord server (if the link is not working, DM RaphMar2022#6488 on Discord)](https://discord.gg/rYJKVuxb)
 
 ## Licensing
