@@ -183,17 +183,17 @@ namespace SipaaGL
         #region Methods
 
         #region Rectangle
-
         /// <summary>
-        /// Draws a filled rectangle from X and Y with the specified Width and Height.
-        /// </summary>
-        /// <param name="X">X position.</param>
-        /// <param name="Y">Y position.</param>
-        /// <param name="Width">Width of the rectangle.</param>
-        /// <param name="Height">Height of the rectangle</param>
-        /// <param name="Radius">Border radius of the rectangle.</param>
-        /// <param name="Color">Color to draw with.</param>
-        public void DrawFilledRectangle(int X, int Y, ushort Width, ushort Height, ushort Radius, Color Color)
+		/// Draws a filled rectangle from X and Y with the specified Width and Height.
+		/// </summary>
+		/// <param name="X">X position.</param>
+		/// <param name="Y">Y position.</param>
+		/// <param name="Width">Width of the rectangle.</param>
+		/// <param name="Height">Height of the rectangle</param>
+		/// <param name="Radius">Border radius of the rectangle.</param>
+		/// <param name="Color">Color to draw with.</param>
+		/// <param name="UseAA">Toggle to enable or disable anti-aliasing.</param>
+		public void DrawFilledRectangle(int X, int Y, ushort Width, ushort Height, ushort Radius, Color Color, bool UseAA = false)
         {
             // Quit if nothing needs to be drawn.
             if (X >= this.Width || Y >= this.Height)
@@ -205,41 +205,34 @@ namespace SipaaGL
                 return;
             }
 
-            // Just clear the screen if the color fills the screen.
-            if (X == 0 && Y == 0 && Width == this.Width && Height == this.Height && Radius == 0 && Color.A == 255)
+            // Fastest cropped draw method.
+            if (Color.A == 255)
             {
-                Clear(Color);
-                return;
-            }
-
-            // Crop the coords and fill the right blocks of memory.
-            if (Radius == 0 && Color.A == 255)
-            {
-                if (X < 0)
+                // Fastest copy-only draw method, fills the whole buffer.
+                if (X == 0 && Y == 0 && Width == this.Width && Height == this.Height)
                 {
-                    Width -= (ushort)Math.Abs(X);
-                    X = 0;
-                }
-                if (Y < 0)
-                {
-                    Height -= (ushort)Math.Abs(Y);
-                    Y = 0;
-                }
-                if (X + Width >= this.Width)
-                {
-                    Width = (ushort)(this.Width - X);
-                }
-                if (Y + Height >= this.Height)
-                {
-                    Height = (ushort)(this.Height - Y);
+                    Clear(Color);
+                    return;
                 }
 
-                for (int IY = 0; IY < Height; IY++)
-                {
-                    MemoryOperations.Fill(Internal + ((Y + IY) * this.Width + X), Color.ARGB, Width);
-                }
+                // Get the cropped coordinates.
+                uint StartX = (uint)Math.Max(X, 0);
+                uint StartY = (uint)Math.Max(Y, 0);
+                uint EndX = (uint)Math.Min(X + Width, this.Width);
+                uint EndY = (uint)Math.Min(Y + Height, this.Height);
 
-                // Make sure to return.
+                // Get new size after crop.
+                uint RHeight = EndY - StartY;
+                uint RWidth = EndX - StartX;
+
+                // Calculate destination offset for the starting point
+                uint Destination = StartY * this.Width + StartX;
+
+                // Fill the region with the color
+                for (uint IY = 0; IY < RHeight; IY++)
+                {
+                    MemoryOperations.Fill(Internal + Destination + (IY * this.Width), Color.ARGB, (int)RWidth);
+                }
                 return;
             }
 
@@ -258,16 +251,17 @@ namespace SipaaGL
             // Circular rectangle.
             else
             {
-                DrawFilledCircle(X + Radius, Y + Radius, Radius, Color);
-                DrawFilledCircle(X + Width - Radius - 1, Y + Radius, Radius, Color);
+                DrawFilledCircle(X + Radius, Y + Radius, Radius, Color, UseAA);
+                DrawFilledCircle(X + Width - Radius - 1, Y + Radius, Radius, Color, UseAA);
 
-                DrawFilledCircle(X + Radius, Y + Height - Radius - 1, Radius, Color);
-                DrawFilledCircle(X + Width - Radius - 1, Y + Height - Radius - 1, Radius, Color);
+                DrawFilledCircle(X + Radius, Y + Height - Radius - 1, Radius, Color, UseAA);
+                DrawFilledCircle(X + Width - Radius - 1, Y + Height - Radius - 1, Radius, Color, UseAA);
 
                 DrawFilledRectangle(X + Radius, Y, (ushort)(Width - Radius * 2), Height, 0, Color);
                 DrawFilledRectangle(X, Y + Radius, Width, (ushort)(Height - Radius * 2), 0, Color);
             }
         }
+
 
         /// <summary>
         /// Draws a non-filled rectangle from X and Y with the specified Width and Height.
@@ -452,15 +446,15 @@ namespace SipaaGL
         #endregion
 
         #region Circle 
-
         /// <summary>
-        /// Draws a filled circle where X and Y are the center of it.
-        /// </summary>
-        /// <param name="X">Center X of the circle.</param>
-        /// <param name="Y">Center Y of the circle.</param>
-        /// <param name="Radius">Radius of the circle.</param>
-        /// <param name="Color">Color to draw with.</param>
-        public void DrawFilledCircle(int X, int Y, ushort Radius, Color Color)
+		/// Draws a filled circle where X and Y are the center of it.
+		/// </summary>
+		/// <param name="X">Center X of the circle.</param>
+		/// <param name="Y">Center Y of the circle.</param>
+		/// <param name="Radius">Radius of the circle.</param>
+		/// <param name="Color">Color to draw with.</param>
+		/// <param name="UseAA">Toggle to use anti-aliasing.</param>
+		public void DrawFilledCircle(int X, int Y, ushort Radius, Color Color, bool UseAA = false)
         {
             // Quit if there is nothing to draw.
             if (Radius == 0)
@@ -473,12 +467,35 @@ namespace SipaaGL
             {
                 ushort R2 = (ushort)(Radius * Radius);
 
+                // Loop for each line in the circle.
                 for (int IY = -Radius; IY <= Radius; IY++)
                 {
                     int IX = (int)(Math.Sqrt(R2 - IY * IY) + 0.5);
                     uint* Offset = Internal + (Width * (Y + IY)) + X - IX;
 
+                    // Clip circle if it is out of bounds
+                    if (X + Radius >= Width)
+                    {
+                        // Reduce length to fit to max width.
+                        IX -= X + Radius - Width;
+                    }
+                    if (X - Radius < 0)
+                    {
+                        // Reduce length and offset so that it stays at X = 0
+                        Offset += Radius - +X;
+                        IX -= Radius - +X;
+                    }
+
+                    // Fill one line of pixels.
                     MemoryOperations.Fill(Offset, Color.ARGB, IX * 2);
+
+                    // Check to see if AA is enabled.
+                    if (UseAA)
+                    {
+                        // Set AA pixels.
+                        this[(uint)Offset - 1] = Color.GetPacked((byte)(Color.A / 2), Color.R, Color.G, Color.B);
+                        this[(uint)(Offset + IX + 1)] = Color.GetPacked((byte)(Color.A / 2), Color.R, Color.G, Color.B);
+                    }
                 }
 
                 // Be sure to return.
@@ -752,59 +769,50 @@ namespace SipaaGL
         /// <exception cref="NullReferenceException">Thrown when input is null.</exception>
         public void DrawImage(int X, int Y, Graphics Image, bool Alpha = true)
         {
-            // Basic null check.
-            if (Image == null)
+            // Basic null/empty check.
+            if (Image == null || Image.Width == 0 || Image.Height == 0)
             {
-                throw new NullReferenceException("Cannot draw a null image file.");
+                return;
             }
 
             // Quit if nothing needs to be drawn.
-            if (X + Image.Width < 0 || Y + Image.Height < 0)
+            if (X + Image.Width < 0 || Y + Image.Height < 0 || X >= Width || Y >= Height)
             {
-                return;
-            }
-            if (X >= Width || Y >= Height)
-            {
-                return;
-            }
-
-            // Fastest copy-only draw method, fills the whole buffer.
-            if (!Alpha && X == 0 && Y == 0 && Image.Width == Width && Image.Height == Height)
-            {
-                Buffer.MemoryCopy(Internal, Image.Internal, Size * 4, Size * 4);
                 return;
             }
 
             // Fastest cropped draw method.
             if (!Alpha)
             {
-                uint TWidth = Image.Width;
-                uint THeight = Image.Height;
-                uint PadX = 0;
-                uint PadY = 0;
-
-                if (X < 0)
+                // Fastest copy-only draw method, fills the whole buffer.
+                if (X == 0 && Y == 0 && Image.Width == this.Width && Image.Height == this.Height)
                 {
-                    PadX = (uint)Math.Abs(X);
-                    TWidth -= PadX;
-                }
-                if (Y < 0)
-                {
-                    PadY = (uint)Math.Abs(Y);
-                    THeight -= PadY;
-                }
-                if (X + Image.Width >= Width)
-                {
-                    TWidth = Width - (uint)X;
-                }
-                if (Y + Image.Height >= Height)
-                {
-                    THeight = Height - (uint)Y;
+                    Buffer.MemoryCopy(Internal, Image.Internal, Size * 4, Size * 4);
+                    return;
                 }
 
-                for (uint IY = 0; IY < THeight; IY++)
+                // Get the cropped coordinates.
+                uint StartX = (uint)Math.Max(X, 0);
+                uint StartY = (uint)Math.Max(Y, 0);
+                uint EndX = (uint)Math.Min(X + Image.Width, this.Width);
+                uint EndY = (uint)Math.Min(Y + Image.Height, this.Height);
+
+                // Get new size after crop.
+                uint Height = EndY - StartY;
+                uint Width = EndX - StartX;
+
+                // Calculate destination & source offsets.
+                uint Destination = StartY * this.Width + StartX;
+                uint Source = (uint)((StartY - Y) * Image.Width + (StartX - X));
+
+                // Draw each line.
+                for (uint IY = 0; IY < Height; IY++)
                 {
-                    Buffer.MemoryCopy(Internal + PadX + X + ((PadY + Y + IY) * Width), Image.Internal + PadX + ((PadY + IY) * Image.Width), TWidth, TWidth);
+                    Buffer.MemoryCopy(Image.Internal + Source, Internal + Destination, Width * 4, Width * 4);
+
+                    // Increment the offsets.
+                    Destination += this.Width;
+                    Source += Image.Width;
                 }
                 return;
             }
@@ -818,7 +826,6 @@ namespace SipaaGL
                 }
             }
         }
-
         #endregion
 
         #region Text
