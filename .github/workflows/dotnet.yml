@@ -28,3 +28,10 @@ jobs:
       run: dotnet restore /home/runner/work/SipaaGL/SipaaGL/SipaaGL/SipaaGL.csproj
     - name: Build
       run: dotnet build --no-restore /home/runner/work/SipaaGL/SipaaGL/SipaaGL/SipaaGL.csproj
+    - name: Publish DLL
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        # Artifact name
+        name: SipaaGL Output
+        # A file, directory or wildcard pattern that describes what to upload
+        path: SipaaGL/bin/Debug/net6.0/
