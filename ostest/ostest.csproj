@@ -25,12 +25,6 @@
       <None Remove="sklogoo.bmp" />
     </ItemGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Cosmos.Build" Version="0-*" NoWarn="NU1604" />
-        <PackageReference Include="Cosmos.Debug.Kernel" Version="0-*" NoWarn="NU1604" />
-        <PackageReference Include="Cosmos.System2" Version="0-*" NoWarn="NU1604" />
-    </ItemGroup>
-
 	<ItemGroup>
 		<EmbeddedResource Include="sklogo.bmp" />
 		<EmbeddedResource Include="sklogo.png" />	
@@ -42,6 +36,42 @@
 
     <ItemGroup>
       <ProjectReference Include="..\SipaaGL\SipaaGL.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Cosmos.Common">
+        <HintPath>..\CosmosLibs\Cosmos.Common.dll</HintPath>
+      </Reference>
+      <Reference Include="Cosmos.Core">
+        <HintPath>..\CosmosLibs\Cosmos.Core.dll</HintPath>
+      </Reference>
+      <Reference Include="Cosmos.Core.DebugStub">
+        <HintPath>..\CosmosLibs\Cosmos.Core.DebugStub.dll</HintPath>
+      </Reference>
+      <Reference Include="Cosmos.Core_Asm">
+        <HintPath>..\CosmosLibs\Cosmos.Core_Asm.dll</HintPath>
+      </Reference>
+      <Reference Include="Cosmos.Core_Plugs">
+        <HintPath>..\CosmosLibs\Cosmos.Core_Plugs.dll</HintPath>
+      </Reference>
+      <Reference Include="Cosmos.Debug.Kernel">
+        <HintPath>..\CosmosLibs\Cosmos.Debug.Kernel.dll</HintPath>
+      </Reference>
+      <Reference Include="Cosmos.Debug.Kernel.Plugs.Asm">
+        <HintPath>..\CosmosLibs\Cosmos.Debug.Kernel.Plugs.Asm.dll</HintPath>
+      </Reference>
+      <Reference Include="Cosmos.HAL2">
+        <HintPath>..\CosmosLibs\Cosmos.HAL2.dll</HintPath>
+      </Reference>
+      <Reference Include="Cosmos.System2">
+        <HintPath>..\CosmosLibs\Cosmos.System2.dll</HintPath>
+      </Reference>
+      <Reference Include="Cosmos.System2_Plugs">
+        <HintPath>..\CosmosLibs\Cosmos.System2_Plugs.dll</HintPath>
+      </Reference>
+      <Reference Include="IL2CPU.API">
+        <HintPath>..\CosmosLibs\IL2CPU.API.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>
