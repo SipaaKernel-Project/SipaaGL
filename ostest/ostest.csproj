@@ -23,11 +23,22 @@
       <None Remove="sklogo.bmp" />
       <None Remove="sklogo.png" />
       <None Remove="sklogoo.bmp" />
+      <None Remove="wallpaper.bmp" />
     </ItemGroup>
 
 	<ItemGroup>
 		<EmbeddedResource Include="sklogo.bmp" />
-		<EmbeddedResource Include="sklogo.png" />	
+		<EmbeddedResource Include="sklogo.png" />
+		<EmbeddedResource Include="wallpaper.bmp" />	
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Cosmos.Build" Version="0.1.0-localbuild20230222102115">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Cosmos.Debug.Kernel" Version="0.1.0-localbuild20230222102130" />
+	  <PackageReference Include="Cosmos.System2" Version="0.1.0-localbuild20230222102130" />
 	</ItemGroup>
 	
     <ItemGroup>

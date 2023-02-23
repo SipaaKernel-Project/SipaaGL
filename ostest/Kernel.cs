@@ -14,8 +14,11 @@ namespace ostest
     {
         [IL2CPU.API.Attribs.ManifestResourceStream(ResourceName = "ostest.sklogo.bmp")]
         public static byte[] sklogo;
+        [IL2CPU.API.Attribs.ManifestResourceStream(ResourceName = "ostest.wallpaper.bmp")]
+        public static byte[] wallp;
 
         Graphics img;
+        Graphics wallp2;
         Gradient g;
 
         SVGAIICanvas C;
@@ -37,6 +40,9 @@ namespace ostest
             g = new(100, 100, new Color[] { Color.Blue, Color.White });
 
             img = Image.FromBitmap(sklogo);
+            wallp2 = Image.FromBitmap(wallp);
+            wallp2.Scale(C.Width, C.Height);
+
             //GaussianBlur.BlurGraphics(img, 20);
             Blur.BlurGraphicsRegion(img, 0, 0, 64, 64, 4);
         }
@@ -57,6 +63,7 @@ namespace ostest
             int Offset = (int)P.Current;
 
             C.Clear();
+            C.DrawImage(0,0, wallp2, false);
             C.DrawImage(X - 128 / 2, Y - 200, img, true);
             C.DrawArc(X, Y, 20, Color.White, Offset, LengthOffset);
             C.DrawString(10, 10, $"{C.GetFPS()} FPS", BitFont.Fallback, Color.White);
