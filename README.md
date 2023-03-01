@@ -1,5 +1,5 @@
 # SipaaGL
-The Sipaa Graphics Library (Powered by [PrismGraphics](https://github.com/Project-Prism/Prism-OS/tree/main/PrismGraphics))
+The Sipaa Graphics Library (Forked from [PrismGraphics](https://github.com/Project-Prism/Prism-OS/tree/main/PrismGraphics))
 
 ## Features
 SVGA / VBE Canvas
